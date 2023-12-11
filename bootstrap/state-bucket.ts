@@ -5,10 +5,12 @@ import { StorageBucketIamMember } from "@cdktf/provider-google/lib/storage-bucke
 import { InceptionAccount } from "./inception-account";
 
 export class StateBucket extends Construct {
+  public bucket: StorageBucket;
+
   constructor(scope: Construct, id: string, variables: BootstrapVariables, inception: InceptionAccount) {
     super(scope, id);
 
-    const bucket = new StorageBucket(this, "tf_state", {
+    this.bucket = new StorageBucket(this, "tf_state", {
       name: variables.stateBucketName,
       project: variables.gcpProject,
       location: variables.stateBucketRegion,
@@ -19,7 +21,7 @@ export class StateBucket extends Construct {
     });
 
     new StorageBucketIamMember(this, "inception", {
-      bucket: bucket.name,
+      bucket: this.bucket.name,
       role: "roles/storage.admin",
       member: `serviceAccount:${inception.inceptionAccount.email}`,
     })
