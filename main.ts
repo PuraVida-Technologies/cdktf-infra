@@ -6,19 +6,17 @@ import { InceptionAccount } from "./bootstrap/inception-account";
 import { ExternalUsers } from "./bootstrap/external-users";
 import { Services } from "./bootstrap/services";
 import { GoogleProvider } from "@cdktf/provider-google/lib/provider";
-import { Bastion } from "./bastion/bastion";
-import { BastionVariables } from "./bastion/variables";
-import { BastionPlatformRoles } from "./bastion/platform-roles";
-import { BastionNetwork } from "./bastion/network";
-import { BastionServiceAccount } from "./bastion/service-account";
-import { BastionAncillaryUsers } from "./bastion/ancillary-users";
-import { BastionAncillaryRoles } from "./bastion/ancillary-roles";
-import { BastionInceptionRoles } from "./bastion/inception-roles";
-import { BastionInceptionUsers } from "./bastion/inception-users";
-import { BastionPlatformUsers } from "./bastion/platform-users";
-import { BastionNodeAccount } from "./bastion/node-account";
-import { BastionNat } from "./bastion/nat";
-import { BastionAccessRole } from "./bastion/bastion-access-role";
+import { Bastion } from "./inception/bastion";
+import { BastionVariables } from "./inception/variables";
+import { BastionPlatformRoles } from "./inception/platform-roles";
+import { BastionNetwork } from "./inception/network";
+import { BastionServiceAccount } from "./inception/service-account";
+import { BastionAncillaryUsers } from "./inception/ancillary-users";
+import { BastionAncillaryRoles } from "./inception/ancillary-roles";
+import { BastionPlatformUsers } from "./inception/platform-users";
+import { BastionNodeAccount } from "./inception/node-account";
+import { BastionAccessRole } from "./inception/bastion-access-role";
+import { InceptionSetup } from "./inception/setup";
 
 class PuraVidaStack extends TerraformStack {
   constructor(scope: Construct, id: string) {
@@ -46,15 +44,10 @@ class PuraVidaStack extends TerraformStack {
     const network = new BastionNetwork(this, "network", bastionVars, platformRoles);
     const serviceAccount = new BastionServiceAccount(this, "service_account", bastionVars);
 
+    new InceptionSetup(this, "inception_setup", bastionVars, serviceAccount, platformRoles, network);
+
     new Bastion(this, "bastion_main", bastionVars, network, serviceAccount);
     new BastionAccessRole(this, "bastion_access_role", bastionVars);
-
-    if (bastionVars.inceptionAdmins.length) {
-      const inceptionRoles = new BastionInceptionRoles(this, "inception_roles", bastionVars);
-      const inceptionUsers = new BastionInceptionUsers(this, "inception_users", bastionVars, inceptionRoles, platformRoles);
-
-      new BastionNat(this, "bastion_nat", bastionVars, network, inceptionRoles, inceptionUsers);
-    }
 
     // todo: should we generate ancillary users/roles if there are none, or no?
     if (bastionVars.ancillaryUsers.length) {

@@ -1,0 +1,6 @@
+importOrder:
+  - ^[^.]
+  - ^[.]
+importOrderCaseInsensitive: true
+importOrderSortSpecifiers: true
+printWidth: 120
